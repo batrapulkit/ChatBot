@@ -26,7 +26,7 @@ def load_custom_model(model_path):
     except Exception as e:
         st.error(f"Error loading the model: {e}")
         return None
-
+padded_sequences = pad_sequences(sequences, maxlen=100)
 # Load model
 model = load_custom_model('model.h5')
 
