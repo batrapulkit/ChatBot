@@ -1,49 +1,46 @@
 import streamlit as st
+import numpy as np
 from tensorflow.keras.models import load_model
-import tensorflow as tf
-from tensorflow.keras.layers import DepthwiseConv2D
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# Create a custom version of DepthwiseConv2D that doesn't take `groups`
-class CustomDepthwiseConv2D(DepthwiseConv2D):
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('groups', None)  # Remove the 'groups' argument if it exists
-        super().__init__(*args, **kwargs)
-
-# Custom model loading
-def load_model_with_custom_layer(model_path):
-    # Load the model, ensuring that our custom DepthwiseConv2D is used
-    custom_objects = {
-        'DepthwiseConv2D': CustomDepthwiseConv2D
-    }
-    return tf.keras.models.load_model(model_path, custom_objects=custom_objects)
-
-# Load the model in your Streamlit app
-model = load_model_with_custom_layer('model.h5')
-
-# # Load the chatbot model
-# model = load_model("model.h5")
-
-# Preprocessing and postprocessing functions
+# Function to preprocess user input (you can modify it based on your model)
 def preprocess_input(user_input):
-    # Add your input preprocessing logic (e.g., tokenization, padding)
-    return user_input
+    # For example, we can tokenize the input or convert it to a format that the model expects.
+    # This is a simple example where we assume the input is already tokenized into a list of integers.
+    # Replace this with actual preprocessing for your model.
+    tokenized_input = user_input.lower().split()
+    return tokenized_input
 
-def postprocess_output(model_output):
-    # Add your output postprocessing logic (e.g., decoding)
-    return model_output
+# Function to post-process the model output (again, modify this based on your model's output)
+def postprocess_output(response):
+    # Convert the model's response into a string that can be displayed
+    # For example, assume the response is a list of probabilities or a string
+    return response[0]  # This is just an example, adjust as per your model's response
 
-# Streamlit app
+# Load your pre-trained model
+model = load_model('model.h5')  # Ensure the model is available in your project directory
+
+# Streamlit UI
 st.title("Chatbot")
-st.write("Interact with the chatbot by typing your message below:")
 
-# User input
-user_input = st.text_input("Your Message:")
+user_input = st.text_input("You: ", "")
 
 if st.button("Send"):
     if user_input:
+        # Preprocess the input from the user
         processed_input = preprocess_input(user_input)
-        response = model.predict([processed_input])  # Update based on your model's input format
+
+        # Convert the list to a numpy array (model expects numpy array or tensor)
+        max_sequence_length = 100  # Adjust this based on your model's requirements
+        input_data = pad_sequences([processed_input], maxlen=max_sequence_length)
+
+        # Get the model's response
+        response = model.predict(input_data)
+
+        # Post-process the model's response (adjust as needed)
         chatbot_reply = postprocess_output(response)
+
+        # Display the chatbot's reply
         st.text_area("Chatbot Reply:", value=chatbot_reply, height=100)
     else:
-        st.warning("Please enter a message!")
+        st.write("Please enter a message.")
