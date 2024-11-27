@@ -1,17 +1,25 @@
 import streamlit as st
 import tensorflow as tf
-from tensorflow.keras.layers import DepthwiseConv2D
 from tensorflow.keras.models import load_model
+from tensorflow.keras.layers import DepthwiseConv2D
 import numpy as np
 
-# Custom function to load the model and handle DepthwiseConv2D deserialization issue
-def load_custom_model(model_path):
-    # Define a custom_objects dictionary to handle custom layer deserialization
-    custom_objects = {
-        'DepthwiseConv2D': DepthwiseConv2D
-    }
+# Override the DepthwiseConv2D layer to handle custom deserialization
+class CustomDepthwiseConv2D(DepthwiseConv2D):
+    def __init__(self, **kwargs):
+        # Remove 'groups' argument from the constructor to avoid the error
+        if 'groups' in kwargs:
+            del kwargs['groups']
+        super().__init__(**kwargs)
 
-    # Try loading the model with custom objects
+# Custom function to load the model with a custom layer handling
+def load_custom_model(model_path):
+    # Define custom objects for loading the model
+    custom_objects = {
+        'DepthwiseConv2D': CustomDepthwiseConv2D  # Use the custom class
+    }
+    
+    # Load the model with custom objects to handle the layer deserialization
     try:
         model = load_model(model_path, custom_objects=custom_objects)
         return model
@@ -19,7 +27,7 @@ def load_custom_model(model_path):
         st.error(f"Error loading the model: {e}")
         return None
 
-# Load your model
+# Load the model
 model = load_custom_model('model.h5')
 
 # Streamlit interface for chat input
