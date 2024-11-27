@@ -1,6 +1,5 @@
-tensorflow # Adjust version based on your TensorFlow setup
-streamlit   # Streamlit version for deployment
-numpy               # For data preprocessing
-pandas              # Optional: If you use data manipulation
-scikit-learn        # Optional: If preprocessing involves sklearn tools
-nltk                # Optional: If your chatbot uses NLP preprocessing
+streamlit==1.24.0
+tensorflow==2.18.0  # Ensure you match the version you're using
+numpy==1.23.4
+pandas==1.5.2
+scikit-learn==1.1.3
