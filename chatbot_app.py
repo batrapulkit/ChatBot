@@ -1,47 +1,67 @@
 import streamlit as st
+import tensorflow as tf
 import numpy as np
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.layers import DepthwiseConv2D
 
-# Function to preprocess user input (you can modify it based on your model)
-def preprocess_input(user_input):
-    # For example, we can tokenize the input or convert it to a format that the model expects.
-    # This is a simple example where we assume the input is already tokenized into a list of integers.
-    # Replace this with actual preprocessing for your model.
-    tokenized_input = user_input.lower().split()
-    return tokenized_input
+# Streamlit page configuration
+st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
 
-# Function to post-process the model output (again, modify this based on your model's output)
-def postprocess_output(response):
-    # Convert the model's response into a string that can be displayed
-    # For example, assume the response is a list of probabilities or a string
-    return response[0]  # This is just an example, adjust as per your model's response
-model.add(DepthwiseConv2D(kernel_size=(3, 3), strides=(1, 1), padding='same'))
-# Load your pre-trained model
-model = load_model('model.h5')  # Ensure the model is available in your project directory
+# Heading and description
+st.title("AI Chatbot")
+st.write(
+    """
+    This is an AI-powered chatbot. Type your message, and the model will respond!
+    """
+)
 
-# Streamlit UI
-st.title("Chatbot")
+# Load pre-trained model
+@st.cache_resource
+def load_chatbot_model():
+    # Replace 'your_chatbot_model_path' with the path to your trained model
+    model_path = "model.h5"  # Update with your model path
+    model = tf.keras.models.load_model(model_path)
+    return model
 
-user_input = st.text_input("You: ", "")
+# Initialize the model
+model = load_chatbot_model()
+
+# Define input preprocessing function (example)
+def preprocess_input(input_text):
+    # Preprocess the user input (tokenization, padding, etc.)
+    # Modify according to your model's requirements
+    # For example, if you're using tokenization:
+    input_seq = tokenizer.texts_to_sequences([input_text])  # Example for tokenizer
+    input_seq = tf.keras.preprocessing.sequence.pad_sequences(input_seq, maxlen=100)  # Adjust maxlen as needed
+    return input_seq
+
+# Define output postprocessing function (example)
+def postprocess_output(model_output):
+    # Convert the model output into a human-readable form
+    # For example, if it's a class prediction:
+    response = " ".join(model_output)  # Modify as per your output type
+    return response
+
+# Text input for chatbot interaction
+st.write("\n\n### Chatbot Interaction")
+
+user_input = st.text_input("Type a message to the chatbot")
 
 if st.button("Send"):
     if user_input:
-        # Preprocess the input from the user
+        # Preprocess input
         processed_input = preprocess_input(user_input)
 
-        # Convert the list to a numpy array (model expects numpy array or tensor)
-        max_sequence_length = 100  # Adjust this based on your model's requirements
-        input_data = pad_sequences([processed_input], maxlen=max_sequence_length)
-
-        # Get the model's response
-        response = model.predict(input_data)
-
-        # Post-process the model's response (adjust as needed)
-        chatbot_reply = postprocess_output(response)
-
-        # Display the chatbot's reply
-        st.text_area("Chatbot Reply:", value=chatbot_reply, height=100)
+        # Get the response from the model
+        with st.spinner("Getting response..."):
+            try:
+                response = model.predict(processed_input)  # Assuming the model is set for text-based input
+                chatbot_reply = postprocess_output(response)
+                st.text_area("Chatbot Reply:", value=chatbot_reply, height=100)
+            except Exception as e:
+                st.error(f"Error during prediction: {str(e)}")
     else:
-        st.write("Please enter a message.")
+        st.warning("Please enter a message to interact with the chatbot.")
+
+# Final footer (optional)
+st.write("\n\n---")
+st.write("Made with ❤️ by [Your Name]")
+
