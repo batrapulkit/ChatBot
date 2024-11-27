@@ -46,14 +46,22 @@ if model is not None:
             sequences = tokenizer.texts_to_sequences([user_input])
 
             # Pad the sequences to match model input shape
-            padded_sequences = pad_sequences(sequences, maxlen=100)  # Adjust maxlen as needed
+            # Check the expected input shape of the model
+            input_shape = model.input_shape
+            maxlen = input_shape[1]  # Extract the expected sequence length
+
+            padded_sequences = pad_sequences(sequences, maxlen=maxlen)  # Use the correct maxlen
             padded_sequences = np.array(padded_sequences, dtype=np.int32)
 
             # Predict the response
             response = model.predict(padded_sequences)
 
+            # Process the response (e.g., extract meaningful information)
+            # If your model outputs probabilities or logits, process them here
+            bot_response = np.argmax(response, axis=-1)  # Example: if it's a classification model
+
             # Display the response
-            st.write(f"Bot: {response[0]}")
+            st.write(f"Bot: {bot_response}")
 
         except Exception as e:
             st.error(f"Error during prediction: {e}")
