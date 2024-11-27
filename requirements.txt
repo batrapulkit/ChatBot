@@ -1,8 +1,4 @@
-python==3.9
-streamlit==1.40.2
-tensorflow==2.18.0
-numpy
-pandas
-scikit-learn
+tensorflow
+streamlit
 setuptools
 
