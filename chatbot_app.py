@@ -4,7 +4,6 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
-import pickle  # To load the tokenizer if it's saved
 
 # Function to load the model
 def load_custom_model(model_path):
@@ -15,22 +14,14 @@ def load_custom_model(model_path):
         st.error(f"Error loading the model: {e}")
         return None
 
-# Function to load the tokenizer
-def load_tokenizer(tokenizer_path):
-    try:
-        with open(tokenizer_path, 'rb') as handle:
-            tokenizer = pickle.load(handle)  # Load the tokenizer using pickle
-        return tokenizer
-    except Exception as e:
-        st.error(f"Error loading the tokenizer: {e}")
-        return None
+# Tokenizer setup (adjust vocab size as per your model)
+tokenizer = Tokenizer(num_words=10000)  # Adjust vocab size as needed
 
-# Load the model and tokenizer
+# Load the model
 model = load_custom_model('model.h5')
-tokenizer = load_tokenizer('tokenizer.pkl')  # Ensure you have the correct path for the tokenizer
 
-# Check if model and tokenizer are loaded
-if model is not None and tokenizer is not None:
+# Check if model is loaded
+if model is not None:
     st.title("Chatbot")
     st.subheader("AI-Powered Chatbot")
 
@@ -50,16 +41,10 @@ if model is not None and tokenizer is not None:
             # Predict the response
             response = model.predict(padded_sequences)
 
-            # Check if the output is a sequence or class prediction
-            if len(response.shape) > 1:  # If the output is a sequence, you might need to decode
-                response_text = ' '.join([str(int(word)) for word in response[0]])  # Example, adjust as needed
-            else:
-                response_text = str(response[0])  # For simple classification, convert it to a string
-
             # Display the response
-            st.write(f"Bot: {response_text}")
+            st.write(f"Bot: {response[0]}")
 
         except Exception as e:
             st.error(f"Error during prediction: {e}")
 else:
-    st.write("Failed to load the model or tokenizer.")
+    st.write("Failed to load the model.")
