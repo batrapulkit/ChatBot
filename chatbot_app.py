@@ -17,7 +17,7 @@ def postprocess_output(response):
     # Convert the model's response into a string that can be displayed
     # For example, assume the response is a list of probabilities or a string
     return response[0]  # This is just an example, adjust as per your model's response
-
+model.add(DepthwiseConv2D(kernel_size=(3, 3), strides=(1, 1), padding='same'))
 # Load your pre-trained model
 model = load_model('model.h5')  # Ensure the model is available in your project directory
 
