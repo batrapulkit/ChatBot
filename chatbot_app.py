@@ -1,26 +1,39 @@
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+from tensorflow.keras import layers
+import numpy as np
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-import numpy as np
 
-# Function to load the model
+# Override the DepthwiseConv2D class to handle the 'groups' argument
+class CustomDepthwiseConv2D(layers.DepthwiseConv2D):
+    def __init__(self, **kwargs):
+        # Remove the 'groups' argument from kwargs to avoid errors
+        if 'groups' in kwargs:
+            del kwargs['groups']
+        super().__init__(**kwargs)
+
+# Function to load model with custom layers
 def load_custom_model(model_path):
+    custom_objects = {
+        'DepthwiseConv2D': CustomDepthwiseConv2D  # Use the custom class
+    }
+    
     try:
-        model = load_model(model_path)
+        model = load_model(model_path, custom_objects=custom_objects)
         return model
     except Exception as e:
         st.error(f"Error loading the model: {e}")
         return None
 
-# Tokenizer setup (should be the same tokenizer used during training)
-tokenizer = Tokenizer(num_words=10000)  # Adjust vocab size as per your model
+# Tokenizer setup (adjust vocab size as per your model)
+tokenizer = Tokenizer(num_words=10000)  # Adjust vocab size as needed
 
-# Load model (text-based model, not image model)
-model = load_custom_model('chatbot_model.h5')
+# Load model
+model = load_custom_model('model.h5')
 
-# Check if the model is loaded
+# Check if model is loaded
 if model is not None:
     st.title("Chatbot")
 
@@ -33,7 +46,7 @@ if model is not None:
             sequences = tokenizer.texts_to_sequences([user_input])
 
             # Pad the sequences to match model input shape
-            padded_sequences = pad_sequences(sequences, maxlen=100)  # Adjust maxlen based on your model
+            padded_sequences = pad_sequences(sequences, maxlen=100)  # Adjust maxlen as needed
             padded_sequences = np.array(padded_sequences, dtype=np.int32)
 
             # Predict the response
