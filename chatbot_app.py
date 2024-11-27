@@ -2,6 +2,7 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.layers import DepthwiseConv2D
 
 # Load the trained model
 model = tf.keras.models.load_model('model.h5')
