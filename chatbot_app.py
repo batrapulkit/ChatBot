@@ -26,12 +26,12 @@ def load_custom_model(model_path):
     except Exception as e:
         st.error(f"Error loading the model: {e}")
         return None
-padded_sequences = pad_sequences(sequences, maxlen=100)
-# Load model
-model = load_custom_model('model.h5')
 
 # Tokenizer setup (adjust vocab size as per your model)
 tokenizer = Tokenizer(num_words=10000)  # Adjust vocab size as needed
+
+# Load model
+model = load_custom_model('model.h5')
 
 # Check if model is loaded
 if model is not None:
@@ -42,8 +42,10 @@ if model is not None:
 
     if user_input:
         try:
-            # Tokenize and pad the input
+            # Tokenize the input text
             sequences = tokenizer.texts_to_sequences([user_input])
+            
+            # Pad the sequences to match model input shape
             padded_sequences = pad_sequences(sequences, maxlen=100)  # Adjust maxlen as needed
             padded_sequences = np.array(padded_sequences, dtype=np.int32)
 
