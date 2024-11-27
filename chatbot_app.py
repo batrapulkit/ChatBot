@@ -6,21 +6,18 @@ import numpy as np
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# Custom DepthwiseConv2D Layer (if used in your model)
-class CustomDepthwiseConv2D(layers.Layer):
+# Override the DepthwiseConv2D class to handle the 'groups' argument
+class CustomDepthwiseConv2D(layers.DepthwiseConv2D):
     def __init__(self, **kwargs):
-        super(CustomDepthwiseConv2D, self).__init__(**kwargs)
-        
-    def build(self, input_shape):
-        pass  # Custom layer initialization
-
-    def call(self, inputs):
-        pass  # Define the forward pass
+        # Remove the 'groups' argument from kwargs to avoid errors
+        if 'groups' in kwargs:
+            del kwargs['groups']
+        super().__init__(**kwargs)
 
 # Function to load model with custom layers
 def load_custom_model(model_path):
     custom_objects = {
-        'CustomDepthwiseConv2D': CustomDepthwiseConv2D
+        'DepthwiseConv2D': CustomDepthwiseConv2D  # Use the custom class
     }
     
     try:
