@@ -1,23 +1,35 @@
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+from tensorflow.keras import layers
+import numpy as np
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-import numpy as np
 
-# Function to load the model
+# Override the DepthwiseConv2D class to handle the 'groups' argument
+class CustomDepthwiseConv2D(layers.DepthwiseConv2D):
+    def __init__(self, **kwargs):
+        # Remove the 'groups' argument from kwargs to avoid errors
+        if 'groups' in kwargs:
+            del kwargs['groups']
+        super().__init__(**kwargs)
+
+# Function to load model with custom layers
 def load_custom_model(model_path):
+    custom_objects = {
+        'DepthwiseConv2D': CustomDepthwiseConv2D  # Use the custom class
+    }
     try:
-        model = load_model(model_path)
+        model = load_model(model_path, custom_objects=custom_objects)
         return model
     except Exception as e:
         st.error(f"Error loading the model: {e}")
         return None
 
-# Tokenizer setup (adjust vocab size as per your model)
+# Tokenizer setup (adjust vocab size as per your model, if it's text-based)
 tokenizer = Tokenizer(num_words=10000)  # Adjust vocab size as needed
 
-# Load the model
+# Load model
 model = load_custom_model('model.h5')
 
 # Check if model is loaded
@@ -41,7 +53,7 @@ if model is not None:
             # Predict the response
             response = model.predict(padded_sequences)
 
-            # Display the response
+            # Process and display the response
             st.write(f"Bot: {response[0]}")
 
         except Exception as e:
