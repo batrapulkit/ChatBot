@@ -1,39 +1,36 @@
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-from tensorflow.keras import layers
-import numpy as np
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import numpy as np
+import pickle  # To load the tokenizer if it's saved
 
-# Override the DepthwiseConv2D class to handle the 'groups' argument
-class CustomDepthwiseConv2D(layers.DepthwiseConv2D):
-    def __init__(self, **kwargs):
-        # Remove the 'groups' argument from kwargs to avoid errors
-        if 'groups' in kwargs:
-            del kwargs['groups']
-        super().__init__(**kwargs)
-
-# Function to load model with custom layers
+# Function to load the model
 def load_custom_model(model_path):
-    custom_objects = {
-        'DepthwiseConv2D': CustomDepthwiseConv2D  # Use the custom class
-    }
     try:
-        model = load_model(model_path, custom_objects=custom_objects)
+        model = load_model(model_path)
         return model
     except Exception as e:
         st.error(f"Error loading the model: {e}")
         return None
 
-# Tokenizer setup (adjust vocab size as per your model, if it's text-based)
-tokenizer = Tokenizer(num_words=10000)  # Adjust vocab size as needed
+# Function to load the tokenizer
+def load_tokenizer(tokenizer_path):
+    try:
+        with open(tokenizer_path, 'rb') as handle:
+            tokenizer = pickle.load(handle)  # Load the tokenizer using pickle
+        return tokenizer
+    except Exception as e:
+        st.error(f"Error loading the tokenizer: {e}")
+        return None
 
-# Load model
+# Load the model and tokenizer
 model = load_custom_model('model.h5')
+tokenizer = load_tokenizer('tokenizer.pkl')  # Ensure you have the correct path for the tokenizer
 
-# Check if model is loaded
-if model is not None:
+# Check if model and tokenizer are loaded
+if model is not None and tokenizer is not None:
     st.title("Chatbot")
     st.subheader("AI-Powered Chatbot")
 
@@ -53,10 +50,16 @@ if model is not None:
             # Predict the response
             response = model.predict(padded_sequences)
 
-            # Process and display the response
-            st.write(f"Bot: {response[0]}")
+            # Check if the output is a sequence or class prediction
+            if len(response.shape) > 1:  # If the output is a sequence, you might need to decode
+                response_text = ' '.join([str(int(word)) for word in response[0]])  # Example, adjust as needed
+            else:
+                response_text = str(response[0])  # For simple classification, convert it to a string
+
+            # Display the response
+            st.write(f"Bot: {response_text}")
 
         except Exception as e:
             st.error(f"Error during prediction: {e}")
 else:
-    st.write("Failed to load the model.")
+    st.write("Failed to load the model or tokenizer.")
