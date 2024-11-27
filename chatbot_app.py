@@ -44,7 +44,7 @@ if model is not None:
         try:
             # Tokenize the input text
             sequences = tokenizer.texts_to_sequences([user_input])
-            
+
             # Pad the sequences to match model input shape
             padded_sequences = pad_sequences(sequences, maxlen=100)  # Adjust maxlen as needed
             padded_sequences = np.array(padded_sequences, dtype=np.int32)
