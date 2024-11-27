@@ -20,6 +20,35 @@ def load_custom_model(model_path):
         st.error(f"Error loading the model: {e}")
         return None
 
+from tensorflow.keras import layers
+
+# Define the custom layer (example)
+class CustomDepthwiseConv2D(layers.Layer):
+    def __init__(self, **kwargs):
+        super(CustomDepthwiseConv2D, self).__init__(**kwargs)
+        # Define the custom layer's behavior here
+
+    def build(self, input_shape):
+        # Initialize any variables or layers
+        pass
+
+    def call(self, inputs):
+        # Implement the forward pass logic here
+        pass
+
+# Load the model with the custom layer
+def load_custom_model(model_path):
+    custom_objects = {
+        'CustomDepthwiseConv2D': CustomDepthwiseConv2D
+    }
+    try:
+        model = load_model(model_path, custom_objects=custom_objects)
+        return model
+    except Exception as e:
+        st.error(f"Error loading the model: {e}")
+        return None
+
+
 # Load the model
 model = load_custom_model('model.h5')
 
