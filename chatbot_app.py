@@ -1,67 +1,43 @@
 import streamlit as st
 import tensorflow as tf
 import numpy as np
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# Streamlit page configuration
-st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
+# Load the trained model
+model = tf.keras.models.load_model('model.h5')
 
-# Heading and description
-st.title("AI Chatbot")
-st.write(
-    """
-    This is an AI-powered chatbot. Type your message, and the model will respond!
-    """
-)
+# Assuming you have tokenizers for input preprocessing and decoding the response
+# Example: tokenizer for user input and response (you should replace with your actual tokenizer)
+from tensorflow.keras.preprocessing.text import Tokenizer
+import pickle
 
-# Load pre-trained model
-@st.cache_resource
-def load_chatbot_model():
-    # Replace 'your_chatbot_model_path' with the path to your trained model
-    model_path = "model.h5"  # Update with your model path
-    model = tf.keras.models.load_model(model_path)
-    return model
+# Load the tokenizer from a saved file (if you have saved it during training)
+with open('tokenizer.pickle', 'rb') as handle:
+    tokenizer = pickle.load(handle)
 
-# Initialize the model
-model = load_chatbot_model()
+# Assuming you have a function for predicting response (modify as per your implementation)
+def predict_response(user_input):
+    # Preprocess input (tokenize and pad to the right sequence length)
+    sequence = tokenizer.texts_to_sequences([user_input])
+    padded_sequence = pad_sequences(sequence, maxlen=50, padding='post')
 
-# Define input preprocessing function (example)
-def preprocess_input(input_text):
-    # Preprocess the user input (tokenization, padding, etc.)
-    # Modify according to your model's requirements
-    # For example, if you're using tokenization:
-    input_seq = tokenizer.texts_to_sequences([input_text])  # Example for tokenizer
-    input_seq = tf.keras.preprocessing.sequence.pad_sequences(input_seq, maxlen=100)  # Adjust maxlen as needed
-    return input_seq
+    # Get model prediction (output would likely be a class or sequence)
+    prediction = model.predict(padded_sequence)
 
-# Define output postprocessing function (example)
-def postprocess_output(model_output):
-    # Convert the model output into a human-readable form
-    # For example, if it's a class prediction:
-    response = " ".join(model_output)  # Modify as per your output type
-    return response
+    # Decode the model output to a human-readable response (this is just an example, adjust as needed)
+    response = np.argmax(prediction, axis=-1)  # Example, assuming classification task
+    response_text = "This is the chatbot's response."  # Replace with actual logic
 
-# Text input for chatbot interaction
-st.write("\n\n### Chatbot Interaction")
+    return response_text
 
-user_input = st.text_input("Type a message to the chatbot")
+# Streamlit UI
+st.title("Chatbot Application")
+st.write("Ask me anything!")
 
-if st.button("Send"):
-    if user_input:
-        # Preprocess input
-        processed_input = preprocess_input(user_input)
+# Text input box for user input
+user_input = st.text_input("Your message:")
 
-        # Get the response from the model
-        with st.spinner("Getting response..."):
-            try:
-                response = model.predict(processed_input)  # Assuming the model is set for text-based input
-                chatbot_reply = postprocess_output(response)
-                st.text_area("Chatbot Reply:", value=chatbot_reply, height=100)
-            except Exception as e:
-                st.error(f"Error during prediction: {str(e)}")
-    else:
-        st.warning("Please enter a message to interact with the chatbot.")
-
-# Final footer (optional)
-st.write("\n\n---")
-st.write("Made with ❤️ by [Your Name]")
-
+if user_input:
+    # Get and display chatbot response
+    bot_response = predict_response(user_input)
+    st.write(f"Chatbot: {bot_response}")
