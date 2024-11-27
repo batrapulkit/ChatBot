@@ -4,6 +4,58 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import DepthwiseConv2D
 import numpy as np
 
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# Load the model (add custom objects if needed)
+def load_custom_model(model_path):
+    custom_objects = {
+        'DepthwiseConv2D': CustomDepthwiseConv2D  # Add any custom layers here
+    }
+    
+    try:
+        model = load_model(model_path, custom_objects=custom_objects)
+        return model
+    except Exception as e:
+        st.error(f"Error loading the model: {e}")
+        return None
+
+# Load the model
+model = load_custom_model('model.h5')
+
+# Tokenizer setup (adjust according to your trained model's vocab)
+tokenizer = Tokenizer(num_words=10000)  # Adjust vocab size according to your model
+
+# Assuming the tokenizer was already fitted with training data
+# tokenizer.fit_on_texts(training_data)  # This should be done during training
+
+if model is not None:
+    st.title("Chatbot")
+
+    # User input
+    user_input = st.text_input("You: ", "")
+
+    if user_input:
+        try:
+            # Tokenize the input text
+            sequences = tokenizer.texts_to_sequences([user_input])
+            padded_sequences = pad_sequences(sequences, maxlen=100)  # Adjust maxlen as per your model's expected input shape
+            
+            # Ensure the data type is correct (e.g., np.int32)
+            padded_sequences = np.array(padded_sequences, dtype=np.int32)
+
+            # Get prediction from model
+            response = model.predict(padded_sequences)
+            st.write(f"Bot: {response[0]}")
+
+        except ValueError as e:
+            st.error(f"Error with input data type: {e}")
+        except Exception as e:
+            st.error(f"Error during prediction: {e}")
+else:
+    st.write("Failed to load the model.")
+
+
 # Override the DepthwiseConv2D layer to handle custom deserialization
 class CustomDepthwiseConv2D(DepthwiseConv2D):
     def __init__(self, **kwargs):
