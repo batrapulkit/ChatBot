@@ -1,8 +1,9 @@
 python==3.11.9
 streamlit
-tensorflow==2.18.0
+tensorflow
 numpy
 pandas
 scikit-learn
 setuptools
+pip --upgrade
 
