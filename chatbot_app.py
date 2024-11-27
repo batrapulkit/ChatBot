@@ -1,8 +1,27 @@
 import streamlit as st
 from tensorflow.keras.models import load_model
+import tensorflow as tf
+from tensorflow.keras.layers import DepthwiseConv2D
 
-# Load the chatbot model
-model = load_model("model.h5")
+# Create a custom version of DepthwiseConv2D that doesn't take `groups`
+class CustomDepthwiseConv2D(DepthwiseConv2D):
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('groups', None)  # Remove the 'groups' argument if it exists
+        super().__init__(*args, **kwargs)
+
+# Custom model loading
+def load_model_with_custom_layer(model_path):
+    # Load the model, ensuring that our custom DepthwiseConv2D is used
+    custom_objects = {
+        'DepthwiseConv2D': CustomDepthwiseConv2D
+    }
+    return tf.keras.models.load_model(model_path, custom_objects=custom_objects)
+
+# Load the model in your Streamlit app
+model = load_model_with_custom_layer('model.h5')
+
+# # Load the chatbot model
+# model = load_model("model.h5")
 
 # Preprocessing and postprocessing functions
 def preprocess_input(user_input):
