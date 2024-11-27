@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.layers import DepthwiseConv2D
 
 # Function to preprocess user input (you can modify it based on your model)
 def preprocess_input(user_input):
